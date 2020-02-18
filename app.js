@@ -1,20 +1,24 @@
-const  express = require('express');
+const express = require('express');
+const Sequelize = require('sequelize');
+const path = require('path');
 
-const app = express();
+// conexion a la base de datos 
+const db = require('./config/database');
 
-const bookRouter = express.Router();
-
-const port = process.env.PORT || 3000;
-
-bookRouter.route('/casa')
-
-.get((req,res)=>{
-  const datos = {id: '1',nombre:'marlon',latlng:[-0.2452833,-78.5397534,17]};
-
-  res.json(datos);
+db.authenticate()
+.then(() => {
+  console.log('Conectado  con sequelize');
+})
+.catch(err => {
+  console.error('error :(' + err);
 });
 
-app.use('/api',bookRouter);
+const app = express();
+//las rutas en localhost
+
+app.use('/api',require ('./routes/ruta'));
+
+const port = process.env.PORT || 3000;
 
 
 app.get('/',(req,res)=>{
