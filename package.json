@@ -14,16 +14,12 @@
   "author": "marlon",
   "license": "ISC",
   "dependencies": {
+    "dotenv": "^17.3.1",
     "express": "^4.17.1",
-    "nodemon": "^2.0.2",
-    "pg": "^7.18.1",
+    "nodemon": "^3.1.14",
+    "pg": "^8.20.0",
     "pg-hstore": "^2.3.3",
-    "sequelize": "^5.21.4"
-  },
-  "devDependencies": {
-    "eslint": "^6.8.0",
-    "eslint-config-airbnb-base": "^14.0.0",
-    "eslint-plugin-import": "^2.20.0"
+    "sequelize": "^6.37.8"
   },
   "nodemonConfig": {
     "restartable": "rs",

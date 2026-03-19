@@ -1,10 +1,87 @@
-<html>
+<!DOCTYPE html>
+<html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+  <meta charset="UTF-8">
+  <title>Registrar Persona</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; max-width: 400px; }
+    input { display: block; width: 100%; margin: 8px 0 16px; padding: 8px; box-sizing: border-box; }
+    button { padding: 10px 20px; background: #2563eb; color: white; border: none; border-radius: 4px; cursor: pointer; }
+    #mensaje { margin-top: 16px; }
+    #coords { font-size: 12px; color: #666; margin-bottom: 8px; min-height: 18px; }
+    small { color: #888; font-size: 11px; }
+  </style>
 </head>
 <body>
-    
+  <h2>Registrar Persona</h2>
+  <label>Nombre:</label>
+  <input type="text" id="nombre" placeholder="Nombre">
+  <label>Apellido:</label>
+  <input type="text" id="apellido" placeholder="Apellido">
+  <label>Dirección:</label>
+  <input type="text" id="direccion" placeholder="Ej: La Mariscal, Quito">
+  <small>💡 Usa barrio o sector: "Cumbayá", "La Carolina, Quito", "El Batán"</small>
+  <p id="coords"></p>
+  <button onclick="guardar()">Guardar</button>
+  <p id="mensaje"></p>
+
+  <script>
+    async function geocodificar(direccion) {
+      const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(direccion)}&format=json&limit=1&countrycodes=ec&accept-language=es`;
+      try {
+        const res = await fetch(url, { headers: { 'User-Agent': 'ClaseJSON/1.0' } });
+        const data = await res.json();
+        if (data.length === 0) return null;
+        return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon), display: data[0].display_name };
+      } catch (e) {
+        return null;
+      }
+    }
+
+    async function guardar() {
+      const nombre    = document.getElementById('nombre').value.trim();
+      const apellido  = document.getElementById('apellido').value.trim();
+      const direccion = document.getElementById('direccion').value.trim();
+      const msg       = document.getElementById('mensaje');
+      const coords    = document.getElementById('coords');
+
+      if (!nombre || !apellido || !direccion) {
+        msg.style.color = 'red';
+        msg.textContent = 'Completa todos los campos';
+        return;
+      }
+
+      msg.style.color = '#666';
+      msg.textContent = '🔍 Buscando coordenadas...';
+      coords.textContent = '';
+
+      const ubicacion = await geocodificar(direccion);
+      if (!ubicacion) {
+        msg.style.color = 'red';
+        msg.textContent = '❌ No se encontró. Prueba con un barrio o sector conocido de Quito';
+        return;
+      }
+
+      coords.textContent = `📍 ${ubicacion.display.substring(0, 60)}... (${ubicacion.lat.toFixed(4)}, ${ubicacion.lng.toFixed(4)})`;
+
+      const res = await fetch('/api/personas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nombre, apellido, direccion, lat: ubicacion.lat, lng: ubicacion.lng })
+      });
+
+      if (res.ok) {
+        msg.style.color = 'green';
+        msg.textContent = '✅ Persona guardada con ubicación';
+        document.getElementById('nombre').value = '';
+        document.getElementById('apellido').value = '';
+        document.getElementById('direccion').value = '';
+        coords.textContent = '';
+      } else {
+        msg.style.color = 'red';
+        msg.textContent = '❌ Error al guardar en BD';
+      }
+    }
+  </script>
 </body>
 </html>
